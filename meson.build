@@ -26,19 +26,19 @@ incdir_f2py = run_command(py,
 ).stdout().strip()
 inc_np = include_directories(incdir_numpy, incdir_f2py)
 
-## Link statically to SciPy's openblas wheel, if available
-blas = dependency('scipy-openblas', required: true, method : 'pkg-config', static: true)
-inc_blas = include_directories(blas.get_variable(pkgconfig: 'includedir'))
-link_args += blas.get_variable(pkgconfig: 'extralib').split()
-
-## TODO: REMOVE 
-## Needed brew recommended links to compile
-link_args += '-L/usr/local/opt/openblas/lib'
-inc_openblas = include_directories('/usr' / 'local' / 'opt' / 'openblas' / 'include')
-
-## TODO: REMOVE 
-## Link to default system library on UNIX systems
-link_args += '-L/usr/local/lib'
+## TODO: fix this
+use_scipy_wheels = false
+if use_scipy_wheels
+  ## Link statically to SciPy's openblas wheel, if available
+  blas = dependency('scipy-openblas', required: true, method : 'pkg-config', static: true)
+  inc_blas = include_directories(blas.get_variable(pkgconfig: 'includedir'))
+  link_args += blas.get_variable(pkgconfig: 'extralib').split()
+else
+  blas = dependency('blas', required: true, method : 'pkg-config', static: false)
+  # inc_blas = include_directories('/usr' / 'local' / 'opt' / 'openblas' / 'include')
+  # link_args += '-L/usr/local/opt/openblas/lib' # brew recommended links to compile
+  # link_args += '-L/usr/local/lib' # Link to default system library on UNIX systems
+endif
 
 ## It just doesn't make sense: I get library not loaded /usr/local/lib/libopenblas, but there is no explicit call to 
 ## link openblas via -lopenblas or anything; only -lopenblas_python, but that is provided by the scipy wheel. 
@@ -47,5 +47,5 @@ executable(
   'hello.cpp', 
   link_args: link_args,
   dependencies: [blas], 
-  include_directories: [inc_np, inc_blas, inc_openblas] # ['/usr/local/lib/', '/usr/local/gfortran/lib/']
+  include_directories: [inc_np, inc_blas] # ['/usr/local/lib/', '/usr/local/gfortran/lib/']
 )
