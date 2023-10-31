@@ -27,14 +27,16 @@ incdir_f2py = run_command(py,
 inc_np = include_directories(incdir_numpy, incdir_f2py)
 
 ## TODO: fix this
-use_scipy_wheels = false
+use_scipy_wheels = true
 if use_scipy_wheels
   ## Link statically to SciPy's openblas wheel, if available
-  blas = dependency('scipy-openblas', required: true, method : 'pkg-config', static: true)
+  blas = dependency('scipy-openblas', required: true, method : 'pkg-config')
   inc_blas = include_directories(blas.get_variable(pkgconfig: 'includedir'))
   link_args += blas.get_variable(pkgconfig: 'extralib').split()
 else
-  blas = dependency('blas', required: true, method : 'pkg-config', static: false)
+  blas = dependency('openblas', required: true, method : 'pkg-config', static: false)
+  inc_blas = include_directories(blas.get_variable(pkgconfig: 'includedir'))
+  link_args += blas.get_variable(pkgconfig: 'extralib').split()
   # inc_blas = include_directories('/usr' / 'local' / 'opt' / 'openblas' / 'include')
   # link_args += '-L/usr/local/opt/openblas/lib' # brew recommended links to compile
   # link_args += '-L/usr/local/lib' # Link to default system library on UNIX systems
